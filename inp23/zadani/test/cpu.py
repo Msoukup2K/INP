@@ -33,7 +33,7 @@ async def test_init(dut):
 @tb_test()
 async def test_increment(dut):
     """Increment value of the first memory cell, i.e. *ptr++"""
-    instcnt, mem, _ = await run_program(dut, '+++@\3')
+    instcnt, mem, _ = await run_program(dut, '+++@')
     assert (dut.done.value.binstr == '1'), "Invalid done value, should be active"
     assert instcnt == 4
     assert mem[4] == 3

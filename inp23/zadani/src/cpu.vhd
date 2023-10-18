@@ -94,22 +94,13 @@ ptr: process(RESET, CLK) --DATA
 		if (RESET='1') then
 			ptr_data <= "1000000000000" ;
 		elsif (CLK'event) and (CLK='1') then
-      if (s_now = s_init) then
-        ptr_data <= "1000000000000"; -- reset pointer to initial position before starting the program
-        L1:loop
-          ptr_data <= ptr_data + 1;
-          if (DATA_RDATA = X"40") then
-            exit; -- stop when '@' is found
-          end if;
-        end loop L1;
-      else
-        if (ptr_inc = '1') then
-          ptr_data <= ptr_data+1;
-        elsif (ptr_dec = '1') then
-          ptr_data <= ptr_data-1;
-        end if;
+			if (ptr_inc = '1') then
+				ptr_data <= ptr_data+1;
+			elsif (ptr_dec = '1') then
+				ptr_data <= ptr_data-1;
+			end if;
 		end if;
-end process ptr;
+	end process ptr;
 
 MUX: process(RESET, CLK)  --READ
 begin
@@ -161,7 +152,7 @@ begin
   end if;
 end process;
 
- fsm: process(s_now)
+fsm: process(s_now)
   begin
     OUT_WE <= '0';
 		IN_REQ <= '0';

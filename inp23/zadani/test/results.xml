@@ -1,7 +1,7 @@
 <testsuites name="results">
   <testsuite name="all" package="all">
-    <property name="random_seed" value="1697630231" />
-    <testcase name="test_increment" classname="cpu" file="/Users/syo.agency/Documents/untitled_folder/INP/inp23/zadani/test/scripts/cpu_lib.py" lineno="33" time="0.008188962936401367" sim_time_ns="240.000001" ratio_time="29307.74053612554">
+    <property name="random_seed" value="1697633187" />
+    <testcase name="test_increment" classname="cpu" file="/Users/syo.agency/Documents/untitled_folder/INP/inp23/zadani/test/scripts/cpu_lib.py" lineno="33" time="0.009485960006713867" sim_time_ns="240.000001" ratio_time="25300.549531110766">
       <failure />
     </testcase>
   </testsuite>
