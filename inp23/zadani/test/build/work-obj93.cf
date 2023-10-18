@@ -1,0 +1,4 @@
+v 4
+file "/Users/syo.agency/Documents/untitled_folder/INP/inp23/zadani/test/" "../src/cpu.vhd" "7eddc2cd620aa5cd0aa2c53143473f60480c5b0c" "20231018120549.681":
+  entity cpu at 6( 214) + 0 on 11;
+  architecture behavioral of cpu at 47( 2232) + 0 on 12;
