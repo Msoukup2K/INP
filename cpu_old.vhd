@@ -83,6 +83,8 @@ pc: process(RESET, CLK) --INSTRUKCE
 		end if;
 	end process pc;
 
+----TAKŽE VŠECHNO IGNORUJU A JAKMILE JE READY JEDNA TAK JE ZAČNU VYKONÁVAT TEPRVE EZ
+
 ptr: process(RESET, CLK) --DATA
 	begin
 		if (RESET='1') then

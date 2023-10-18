@@ -90,17 +90,17 @@ begin
   end process pc;
 
 ptr: process(RESET, CLK) --DATA
-	begin
-		if (RESET='1') then
-			ptr_data <= "1000000000000" ;
-		elsif (CLK'event) and (CLK='1') then
-			if (ptr_inc = '1') then
-				ptr_data <= ptr_data+1;
-			elsif (ptr_dec = '1') then
-				ptr_data <= ptr_data-1;
-			end if;
-		end if;
-	end process ptr;
+begin
+  if (RESET='1') then
+    ptr_data <= "1000000000000" ;
+  elsif (CLK'event and CLK='1') then
+      if (ptr_inc = '1') then
+        ptr_data <= ptr_data + 1;
+      elsif (ptr_dec = '1') then
+        ptr_data <= ptr_data - 1;
+      end if;
+  end if;
+end process ptr;
 
 MUX: process(RESET, CLK)  --READ
 begin
