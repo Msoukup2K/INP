@@ -1,27 +1,7 @@
 <testsuites name="results">
   <testsuite name="all" package="all">
-    <property name="random_seed" value="1697633797" />
-    <testcase name="test_reset" classname="cpu" file="/Users/syo.agency/Documents/untitled_folder/INP/inp23/zadani/test/scripts/cpu_lib.py" lineno="10" time="0.0015878677368164062" sim_time_ns="51.000001" ratio_time="32118.54477391952" />
-    <testcase name="test_init" classname="cpu" file="/Users/syo.agency/Documents/untitled_folder/INP/inp23/zadani/test/scripts/cpu_lib.py" lineno="26" time="0.004160881042480469" sim_time_ns="80.000001" ratio_time="19226.697467012604" />
-    <testcase name="test_increment" classname="cpu" file="/Users/syo.agency/Documents/untitled_folder/INP/inp23/zadani/test/scripts/cpu_lib.py" lineno="33" time="0.00844883918762207" sim_time_ns="240.000001" ratio_time="28406.269272068854">
-      <failure />
-    </testcase>
-    <testcase name="test_decrement" classname="cpu" file="/Users/syo.agency/Documents/untitled_folder/INP/inp23/zadani/test/scripts/cpu_lib.py" lineno="42" time="0.0071947574615478516" sim_time_ns="240.000001" ratio_time="33357.62216901295">
-      <failure />
-    </testcase>
-    <testcase name="test_move" classname="cpu" file="/Users/syo.agency/Documents/untitled_folder/INP/inp23/zadani/test/scripts/cpu_lib.py" lineno="50" time="0.010144948959350586" sim_time_ns="160.000001" ratio_time="15771.395365427463">
-      <failure />
-    </testcase>
-    <testcase name="test_print" classname="cpu" file="/Users/syo.agency/Documents/untitled_folder/INP/inp23/zadani/test/scripts/cpu_lib.py" lineno="58" time="0.06321310997009277" sim_time_ns="3555.0000010000003" ratio_time="56238.33414748828">
-      <failure />
-    </testcase>
-    <testcase name="test_input" classname="cpu" file="/Users/syo.agency/Documents/untitled_folder/INP/inp23/zadani/test/scripts/cpu_lib.py" lineno="64" time="0.11872172355651855" sim_time_ns="5155.000001" ratio_time="43420.86558864617">
-      <failure />
-    </testcase>
-    <testcase name="test_while_loop" classname="cpu" file="/Users/syo.agency/Documents/untitled_folder/INP/inp23/zadani/test/scripts/cpu_lib.py" lineno="74" time="0.10964083671569824" sim_time_ns="5055.000001" ratio_time="46105.08413126905">
-      <failure />
-    </testcase>
-    <testcase name="test_break" classname="cpu" file="/Users/syo.agency/Documents/untitled_folder/INP/inp23/zadani/test/scripts/cpu_lib.py" lineno="82" time="0.08545398712158203" sim_time_ns="5055.0000009999985" ratio_time="59154.64182856509">
+    <property name="random_seed" value="1697705411" />
+    <testcase name="test_increment" classname="cpu" file="/Users/syo.agency/Documents/untitled_folder/INP/inp23/zadani/test/scripts/cpu_lib.py" lineno="33" time="0.019886016845703125" sim_time_ns="1055.000001" ratio_time="53052.35378134357">
       <failure />
     </testcase>
   </testsuite>

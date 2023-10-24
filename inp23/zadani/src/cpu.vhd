@@ -92,7 +92,7 @@ begin
 ptr: process(RESET, CLK) --DATA
 begin
   if (RESET='1') then
-    ptr_data <= "1000000000000" ;
+    ptr_data <= "0000000000000" ;
   elsif (CLK'event and CLK='1') then
       if (ptr_inc = '1') then
         ptr_data <= ptr_data + 1;
@@ -104,7 +104,7 @@ end process ptr;
 
 MUX: process(RESET, CLK)  --READ
 begin
-  case(mux0) is
+  case(mux1) is
     when '0' => 
     DATA_ADDR <= pc_data;
     when '1' => 
@@ -116,7 +116,7 @@ end process;
 
 MUXF: process(RESET, CLK) 
 begin
-  case(mux1) is
+  case(mux2) is
     when "00" => 
     DATA_WDATA <= IN_DATA;
     when "01" => 
@@ -163,114 +163,29 @@ fsm: process(s_now)
     DONE <= '0';
 		READY <= '0';
 
+    ---CNT
 		cnt_inc <= '0';
 		cnt_dec <= '0';
 
+    ---PC
 		pc_inc <= '0';
 		pc_dec <= '0';
 
+    ---PTR
 		ptr_inc <= '0';
 		ptr_dec <= '0';
 
-    mux0 <= '0';
-    mux1 <= "00";
+    ---MUX1/2
+    mux1 <= '0';
+    mux2 <= "00";
 
     s_next <= s_init;
 
     case s_now is
       when s_init =>
-        s_next <= s_fetch;
-
-      when s_fetch =>
-        s_next <= s_decode;
-
-      when s_decode =>
-          READY <= '1';
-        case DATA_RDATA is
-          when X"40" => 
-            DONE <= '1';
-            s_next <= s_stop;
-          
-          when X"3E" =>
-            --inkrement ptr
-            ptr_inc <= '1';
-            pc_inc <= '1';
-            s_next <= s_fetch;
-          
-          when X"3C" => 
-            --dekrement ptr
-            ptr_dec <= '1';
-            pc_dec <= '1';
-            s_next <= s_fetch;
-
-          when X"2B" =>
-            mux0 <= '1';
-            s_next <= s_inc_data;
-
-          when X"2D" => 
-            s_next <= s_dec_data;
-            --dekrement pc ig
-          
-          when X"5B" => 
-            --aktualni hodnota je nulova, skoc za prikaz ] (dalsi case)
-            null;
-
-          when X"5D" =>
-            --hodnota nenulova skoc za [ jinak nasledujici znak
-            null;
-          
-          when X"7E" => 
-            --ukonci smycku while
-            null;
-
-          when X"2E" =>
-            --vytiskni hodnotu aktualni bunky
-            null;
-
-          when X"2C" =>
-            --nacti hodnotu a uloz ji do aktualni bunky
-            null;
-
-          when others =>
-            s_next <= s_again;
-        end case;
-
-------------------------------------------------------------------
-      when s_inc_data =>
-        DATA_EN <= '1';
-        DATA_RDWR <= '0';
-        s_next <= s_inc_data2;
-
-      when s_inc_data2 =>
-        mux0 <= '1';
-        mux1 <= "01";
-        DATA_EN <= '1';
-        DATA_RDWR <= '1';   
-        pc_inc <= '1';
-        s_next <= s_fetch;
-
-    
-------------------------------------------------------------------
-      when s_dec_data =>
-          DATA_EN <= '1';
-          DATA_RDWR <= '0';
-          s_next <= s_inc_data2;
+        ptr_inc <= '1';
+        mux1 <= '1';
         
-      when s_dec_data2 =>
-          mux0 <= '1';
-          mux1 <= "10";
-          DATA_EN <= '1';
-          DATA_RDWR <= '0';
-          ptr_inc <= '1';
-          s_next <= s_fetch;
-------------------------------------------------------------------
-
-      when s_again =>
-          pc_inc <= '1';
-          s_next <= s_fetch;
-
-      when s_stop =>
-        s_next <= s_stop;
 
       when others =>
         null;
