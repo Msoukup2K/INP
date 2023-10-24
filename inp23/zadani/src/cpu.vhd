@@ -57,10 +57,10 @@ architecture behavioral of cpu is
   signal cnt_inc : std_logic;
   signal cnt_dec : std_logic;
 
-  signal mux0 : std_logic;
-  signal mux1 : std_logic_vector(1 downto 0);
+  signal mux1 : std_logic;
+  signal mux2 : std_logic_vector(1 downto 0);
     
-  type fsm_s is ( s_init, s_again,
+  type fsm_s is ( s_init, s_again, s_init2,
   s_fetch, s_decode,
   s_inc_data, s_inc_data2, --s_inc_data3,
   s_dec_data, s_dec_data2,
@@ -183,10 +183,109 @@ fsm: process(s_now)
 
     case s_now is
       when s_init =>
-        ptr_inc <= '1';
+        DATA_EN <= '1';
+        DATA_RDWR <= '0';
         mux1 <= '1';
-        
+        s_next <= s_init2;
 
+      when s_init2 =>
+          ptr_inc <= '1';
+        if( DATA_RDATA = X"40") then
+          READY <= '1';
+          s_next <= s_fetch;
+        else
+          mux1 <= '1';
+          s_next <= s_init; 
+        end if;
+      when s_fetch =>
+        s_next <= s_decode;
+
+      when s_decode =>
+        case DATA_RDATA is
+          when X"40" => 
+            DONE <= '1';
+            s_next <= s_stop;
+          
+          when X"3E" =>
+            --inkrement ptr
+            ptr_inc <= '1';
+            pc_inc <= '1';
+            s_next <= s_fetch;
+          
+          when X"3C" => 
+            --dekrement ptr
+            ptr_dec <= '1';
+            pc_dec <= '1';
+            s_next <= s_fetch;
+
+          when X"2B" =>
+            mux1 <= '1';
+            s_next <= s_inc_data;
+
+          when X"2D" => 
+            s_next <= s_dec_data;
+            --dekrement pc ig
+          
+          when X"5B" => 
+            --aktualni hodnota je nulova, skoc za prikaz ] (dalsi case)
+            null;
+
+          when X"5D" =>
+            --hodnota nenulova skoc za [ jinak nasledujici znak
+            null;
+          
+          when X"7E" => 
+            --ukonci smycku while
+            null;
+
+          when X"2E" =>
+            --vytiskni hodnotu aktualni bunky
+            null;
+
+          when X"2C" =>
+            --nacti hodnotu a uloz ji do aktualni bunky
+            null;
+
+          when others =>
+            s_next <= s_again;
+        end case;
+
+------------------------------------------------------------------
+      when s_inc_data =>
+        DATA_EN <= '1';
+        DATA_RDWR <= '0';
+        s_next <= s_inc_data2;
+
+      when s_inc_data2 =>
+        mux1 <= '1';
+        mux2 <= "01";
+        DATA_EN <= '1';
+        DATA_RDWR <= '1';   
+        pc_inc <= '1';
+        s_next <= s_fetch;
+
+    
+------------------------------------------------------------------
+      when s_dec_data =>
+          DATA_EN <= '1';
+          DATA_RDWR <= '0';
+          s_next <= s_inc_data2;
+        
+      when s_dec_data2 =>
+          mux1 <= '1';
+          mux2 <= "10";
+          DATA_EN <= '1';
+          DATA_RDWR <= '0';
+          ptr_inc <= '1';
+          s_next <= s_fetch;
+------------------------------------------------------------------
+
+      when s_again =>
+          pc_inc <= '1';
+          s_next <= s_fetch;
+
+      when s_stop =>
+        s_next <= s_stop;
       when others =>
         null;
     end case;
