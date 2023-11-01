@@ -36,7 +36,6 @@ async def test_increment(dut):
     instcnt, mem, _ = await run_program(dut, '+++@')
     assert (dut.done.value.binstr == '1'), "Invalid done value, should be active"
     assert instcnt == 4
-    assert mem == 1
     assert mem[4] == 3
 
 

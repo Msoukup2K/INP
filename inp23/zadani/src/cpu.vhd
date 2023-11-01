@@ -62,8 +62,13 @@ architecture behavioral of cpu is
     
   type fsm_s is ( s_init, s_again, s_init2,
   s_fetch, s_decode,
-  s_inc_data, s_inc_data2, --s_inc_data3,
-  s_dec_data, s_dec_data2,
+  s_inc_data, s_inc_data2, s_inc_data3,
+  s_dec_data, s_dec_data2, s_dec_data3,
+  s_ptr_inc, s_ptr_dec,
+  s_print, s_print2, s_print3,
+  s_input, s_input2, s_input_write,
+  s_while, s_while2, s_while3,
+  s_while_end, s_while_end2, s_while_end3, s_while_end4,
   s_stop);
   
   signal s_now : fsm_s := s_init;
@@ -183,24 +188,24 @@ fsm: process(s_now)
 
     case s_now is
       when s_init =>
-        DATA_EN <= '1';
-        DATA_RDWR <= '0';
         mux1 <= '1';
         s_next <= s_init2;
 
       when s_init2 =>
-          ptr_inc <= '1';
+        mux1 <= '1';
         if( DATA_RDATA = X"40") then
           READY <= '1';
-          s_next <= s_fetch;
+          s_next <= s_decode;
         else
-          mux1 <= '1';
+          ptr_inc <= '1';
           s_next <= s_init; 
         end if;
       when s_fetch =>
+        mux1 <= '1';
         s_next <= s_decode;
 
       when s_decode =>
+        READY <= '1';
         case DATA_RDATA is
           when X"40" => 
             DONE <= '1';
@@ -208,18 +213,17 @@ fsm: process(s_now)
           
           when X"3E" =>
             --inkrement ptr
-            ptr_inc <= '1';
             pc_inc <= '1';
-            s_next <= s_fetch;
+            ptr_inc <= '1';
+            s_next <= s_ptr_inc;
           
           when X"3C" => 
             --dekrement ptr
             ptr_dec <= '1';
             pc_dec <= '1';
-            s_next <= s_fetch;
+            s_next <= s_ptr_dec;
 
           when X"2B" =>
-            mux1 <= '1';
             s_next <= s_inc_data;
 
           when X"2D" => 
@@ -228,10 +232,12 @@ fsm: process(s_now)
           
           when X"5B" => 
             --aktualni hodnota je nulova, skoc za prikaz ] (dalsi case)
+            s_next <= s_while;
             null;
 
           when X"5D" =>
             --hodnota nenulova skoc za [ jinak nasledujici znak
+            s_next <= s_while_end;
             null;
           
           when X"7E" => 
@@ -240,48 +246,185 @@ fsm: process(s_now)
 
           when X"2E" =>
             --vytiskni hodnotu aktualni bunky
-            null;
+            s_next <= s_print;
+
 
           when X"2C" =>
             --nacti hodnotu a uloz ji do aktualni bunky
-            null;
+            s_next <= s_input;
 
           when others =>
             s_next <= s_again;
         end case;
 
 ------------------------------------------------------------------
+      when s_while_end =>
+          DATA_RDWR <= '0';
+          mux1 <= '1';
+          s_next <= s_while_end2;
+      
+      when s_while_end2 =>
+          if ( DATA_RDATA = "00000000" ) then
+            pc_inc <= '1';
+            s_next <= s_fetch;
+          else
+            pc_dec <= '1';
+            cnt_inc <= '1';
+            mux1 <= '0';
+            s_next <= s_while_end3;
+          end if;
+      
+      when s_while_end3 =>
+          if ( cnt_data = "00000000" ) then
+            s_next <= s_fetch;
+          else
+            if ( DATA_RDATA = X"5B" ) then
+                cnt_dec <= '1';
+            elsif ( DATA_RDATA = X"5D" ) then
+                cnt_inc <= '1';
+            end if;
+            mux1 <= '0';
+            s_next <= s_while_end4;
+          end if;
+
+      when s_while_end4 =>
+          if ( cnt_data = "00000000" ) then
+            pc_inc <= '1';
+          else
+            pc_dec <= '1';
+          end if;
+          s_next <= s_while_end3;
+          
+
+------------------------------------------------------------------
+      when s_while =>
+          DATA_RDWR <= '0';
+          pc_inc <= '1';
+          mux1 <= '1';
+          s_next <= s_while2;
+      
+      when s_while2 =>
+          if ( DATA_RDATA = "00000000") then
+            s_next <= s_fetch;
+          else
+            cnt_inc <= '1';
+            mux1 <= '0';
+            s_next <= s_while3;
+          end if;
+
+      when s_while3 =>
+          if ( cnt_data = "00000000" ) then
+            s_next <= s_fetch;
+          else
+            if ( DATA_RDATA = X"5B") then
+              cnt_inc <= '1';
+            elsif ( DATA_RDATA = X"5D" ) then
+              cnt_dec <= '1';
+            end if;
+            pc_inc <= '1';
+            mux1 <= '0';
+            s_next <= s_while3;
+          end if;
+            
+            
+
+
+------------------------------------------------------------------
+      when s_input => 
+          IN_REQ <= '1';
+          DATA_RDWR <= '0';
+          mux1 <= '1';
+          s_next <= s_input2;
+
+      when s_input2 =>
+          if ( IN_VLD = '1' ) then
+            DATA_RDWR <= '1';
+            mux1 <= '1';
+            s_next <= s_input_write;
+          else
+            IN_REQ <= '1';
+            mux1 <= '1';
+            DATA_RDWR <= '0';
+            s_next <= s_input;
+
+          end if;
+
+      when s_input_write =>
+          mux1 <= '1';
+          pc_inc <= '1';
+          s_next <= s_fetch;
+
+------------------------------------------------------------------
+      when s_print =>
+          mux1 <= '1';
+        if ( OUT_BUSY = '1' ) then
+          s_next <= s_print2;
+        else
+          mux1 <= '1';
+          OUT_WE <= '1';
+          OUT_DATA <= DATA_RDATA;
+          s_next <= s_print3;
+          pc_inc <= '1';
+        end if;
+
+      when s_print2 =>
+          mux1 <= '1';
+          OUT_WE <= '0';
+          s_next <= s_print;
+
+      when s_print3 =>
+          s_next <= s_fetch;
+
+------------------------------------------------------------------
+      when s_ptr_inc =>
+        s_next <= s_fetch;
+
+      when s_ptr_dec =>
+        s_next <= s_fetch;
+
+------------------------------------------------------------------
       when s_inc_data =>
         DATA_EN <= '1';
         DATA_RDWR <= '0';
+        mux1 <= '1';
         s_next <= s_inc_data2;
 
       when s_inc_data2 =>
         mux1 <= '1';
         mux2 <= "01";
         DATA_EN <= '1';
-        DATA_RDWR <= '1';   
+        DATA_RDWR <= '1';
         pc_inc <= '1';
+        s_next <= s_inc_data3;
+
+      when s_inc_data3 =>
+        DATA_EN <= '1';
+        DATA_RDWR <= '0';
         s_next <= s_fetch;
 
-    
 ------------------------------------------------------------------
       when s_dec_data =>
           DATA_EN <= '1';
           DATA_RDWR <= '0';
-          s_next <= s_inc_data2;
+          mux1 <= '1';
+          s_next <= s_dec_data2;
         
       when s_dec_data2 =>
           mux1 <= '1';
           mux2 <= "10";
           DATA_EN <= '1';
+          DATA_RDWR <= '1';
+          pc_inc <= '1';
+          s_next <= s_dec_data3;
+
+      when s_dec_data3 =>
+          DATA_EN <= '1';
           DATA_RDWR <= '0';
-          ptr_inc <= '1';
           s_next <= s_fetch;
+
 ------------------------------------------------------------------
 
       when s_again =>
-          pc_inc <= '1';
           s_next <= s_fetch;
 
       when s_stop =>
