@@ -67,8 +67,9 @@ architecture behavioral of cpu is
   s_ptr_inc, s_ptr_dec,
   s_print, s_print2, s_print3,
   s_input, s_input2, s_input_write,
-  s_while, s_while2, s_while3,
-  s_while_end, s_while_end2, s_while_end3, s_while_end4,
+  s_while, s_while2, s_while3, s_while4,
+  s_while_end, s_while_end2, s_while_end3, s_while_end4, s_while_end5,
+  s_break, s_break2,
   s_stop);
   
   signal s_now : fsm_s := s_init;
@@ -233,15 +234,14 @@ fsm: process(s_now)
           when X"5B" => 
             --aktualni hodnota je nulova, skoc za prikaz ] (dalsi case)
             s_next <= s_while;
-            null;
+            
 
           when X"5D" =>
             --hodnota nenulova skoc za [ jinak nasledujici znak
             s_next <= s_while_end;
-            null;
           
           when X"7E" => 
-            --ukonci smycku while
+            s_next <= s_break;
             null;
 
           when X"2E" =>
@@ -258,75 +258,74 @@ fsm: process(s_now)
         end case;
 
 ------------------------------------------------------------------
-      when s_while_end =>
-          DATA_RDWR <= '0';
-          mux1 <= '1';
-          s_next <= s_while_end2;
-      
-      when s_while_end2 =>
-          if ( DATA_RDATA = "00000000" ) then
-            pc_inc <= '1';
-            s_next <= s_fetch;
-          else
-            pc_dec <= '1';
-            cnt_inc <= '1';
+      when s_while =>
+        pc_inc <= '1';
+        if (DATA_RDATA = "00000000") then
+          mux1 <= '0';
+          s_next <= s_while2;
+        else
+          s_next <= s_fetch;
+        end if;
+
+      when s_while2 =>
+          mux1 <= '0';
+          s_next <= s_while3;
+
+      when s_while3 => 
+          if (cnt_data /= "00000000") then
             mux1 <= '0';
             s_next <= s_while_end3;
-          end if;
-      
-      when s_while_end3 =>
-          if ( cnt_data = "00000000" ) then
-            s_next <= s_fetch;
           else
-            if ( DATA_RDATA = X"5B" ) then
-                cnt_dec <= '1';
-            elsif ( DATA_RDATA = X"5D" ) then
-                cnt_inc <= '1';
-            end if;
-            mux1 <= '0';
-            s_next <= s_while_end4;
+            s_next <= s_while;
           end if;
 
-      when s_while_end4 =>
-          if ( cnt_data = "00000000" ) then
+      when s_while4 =>
+          if (DATA_RDATA = X"5B") then
+            cnt_inc <= '1';
+          elsif (DATA_RDATA = X"5D") then
+            cnt_dec <= '1';
+          end if;
+          s_next <= s_while5;
+
+      when s_while5 =>
+          if (cnt_data = "00000000") then
             pc_inc <= '1';
           else
             pc_dec <= '1';
           end if;
+
+
+      when s_while_end => 
+        if( DATA_RDATA /= "00000000") then
+          pc_dec <= '1';
+          s_next <= s_while_end2;
+        else
+          pc_inc <= '1';
+          s_next <= s_fetch;
+        end if;
+
+      when s_while_end2 => 
+          pc_dec <= '1';
+          mux1 <= '1';
           s_next <= s_while_end3;
-          
+        
+      when s_while_end3 =>
+          pc_inc <= '1';
+          s_next <= s_fetch;
 
 ------------------------------------------------------------------
-      when s_while =>
-          DATA_RDWR <= '0';
-          pc_inc <= '1';
-          mux1 <= '1';
-          s_next <= s_while2;
-      
-      when s_while2 =>
-          if ( DATA_RDATA = "00000000") then
-            s_next <= s_fetch;
-          else
-            cnt_inc <= '1';
-            mux1 <= '0';
-            s_next <= s_while3;
-          end if;
+      when s_break =>
+        mux1 <= '0';
+        s_next <= s_break2;
 
-      when s_while3 =>
-          if ( cnt_data = "00000000" ) then
-            s_next <= s_fetch;
-          else
-            if ( DATA_RDATA = X"5B") then
-              cnt_inc <= '1';
-            elsif ( DATA_RDATA = X"5D" ) then
-              cnt_dec <= '1';
-            end if;
-            pc_inc <= '1';
-            mux1 <= '0';
-            s_next <= s_while3;
-          end if;
-            
-            
+      when s_break2 =>
+        mux1 <= '0';
+        if( DATA_RDATA = X"5D") then
+          s_next <= s_fetch;
+        else
+          pc_inc <= '1';
+          s_next <= s_break;
+        end if;
 
 
 ------------------------------------------------------------------
