@@ -293,6 +293,7 @@ fsm: process(s_now)
           else
             pc_dec <= '1';
           end if;
+          s_next <= s_while2;
 
 
       when s_while_end => 
