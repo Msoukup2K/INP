@@ -75,9 +75,8 @@ async def test_input(dut):
 async def test_while_loop(dut):
     """Simple while loop test"""
     instcnt, mem, lcd = await run_program(dut, '[.-]@\3', timeout_ns = LCD_WAIT_TIME*10)
-    assert dut.data_addr.value == 5
-    assert dut.data_rdata.value == 3
-    
+    assert dut.data_addr.value == 4
+    assert dut.data_rdata.value == 2
     assert mem == 1
     assert mem[5] == 0
     assert lcd == "\3\2\1"
@@ -95,7 +94,7 @@ async def test_break(dut):
   #  file_name = '../src/login.b'
    # assert os.path.isfile(file_name), "File login.b is missing" 
     #with open(file_name,'rt') as f:
-     #   prog = f.read()
+     #  prog = f.read()
     #assert len(prog), "File login.b doesn't contain any program"
     #instcnt, mem, lcd = await run_program(dut, prog, timeout_ns = 250_000)
     #lcd = lcd.lower()

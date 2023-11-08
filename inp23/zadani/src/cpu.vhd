@@ -67,7 +67,7 @@ architecture behavioral of cpu is
   s_ptr_inc, s_ptr_dec,
   s_print, s_print2, s_print3,
   s_input, s_input2, s_input_write,
-  s_while, s_while2, s_while3, s_while4,
+  s_while, s_while2, s_while3, s_while4, s_while5,
   s_while_end, s_while_end2, s_while_end3, s_while_end4, s_while_end5,
   s_break, s_break2,
   s_stop);
@@ -210,6 +210,7 @@ fsm: process(s_now)
         case DATA_RDATA is
           when X"40" => 
             DONE <= '1';
+            mux1 <= '0';
             s_next <= s_stop;
           
           when X"3E" =>
@@ -242,10 +243,10 @@ fsm: process(s_now)
           
           when X"7E" => 
             s_next <= s_break;
-            null;
 
           when X"2E" =>
             --vytiskni hodnotu aktualni bunky
+            mux1 <= '1';
             s_next <= s_print;
 
 
@@ -260,59 +261,53 @@ fsm: process(s_now)
 ------------------------------------------------------------------
       when s_while =>
         pc_inc <= '1';
-        if (DATA_RDATA = "00000000") then
-          mux1 <= '0';
-          s_next <= s_while2;
-        else
-          s_next <= s_fetch;
-        end if;
+        DATA_EN <= '1';
+        DATA_RDWR <= '0';
+        s_next <= s_while2;
+        
 
       when s_while2 =>
-          mux1 <= '0';
-          s_next <= s_while3;
+          if( DATA_RDATA = "00000000") then
+            mux1 <= '0';
+            s_next <= s_while3;
+          else
+            s_next <= s_fetch;
+          end if;
 
       when s_while3 => 
-          if (cnt_data /= "00000000") then
+          if (DATA_RDATA = X"5D") then
             mux1 <= '0';
-            s_next <= s_while_end3;
+            s_next <= s_fetch;
           else
-            s_next <= s_while;
+            s_next <= s_while4;
           end if;
 
       when s_while4 =>
-          if (DATA_RDATA = X"5B") then
-            cnt_inc <= '1';
-          elsif (DATA_RDATA = X"5D") then
-            cnt_dec <= '1';
-          end if;
-          s_next <= s_while5;
+        pc_inc <= '1';
+        s_next <= s_while3;
 
-      when s_while5 =>
-          if (cnt_data = "00000000") then
-            pc_inc <= '1';
-          else
-            pc_dec <= '1';
-          end if;
-          s_next <= s_while2;
-
-
+        
       when s_while_end => 
         if( DATA_RDATA /= "00000000") then
           pc_dec <= '1';
-          s_next <= s_while_end2;
+          s_next <= s_fetch;
         else
           pc_inc <= '1';
           s_next <= s_fetch;
         end if;
 
-      when s_while_end2 => 
-          pc_dec <= '1';
-          mux1 <= '1';
-          s_next <= s_while_end3;
-        
+      when s_while_end2 =>
+        if( DATA_RDATA = X"5B") then
+            pc_inc <= '1';
+            s_next <= s_fetch;
+          else
+            pc_dec <= '1';
+            s_next <= s_fetch;
+            s_next <= s_while_end3;
+          end if;
+
       when s_while_end3 =>
-          pc_inc <= '1';
-          s_next <= s_fetch;
+          s_next <= s_while_end2;
 
 ------------------------------------------------------------------
       when s_break =>
@@ -356,8 +351,8 @@ fsm: process(s_now)
 
 ------------------------------------------------------------------
       when s_print =>
-          mux1 <= '1';
         if ( OUT_BUSY = '1' ) then
+          mux1 <= '1';
           s_next <= s_print2;
         else
           mux1 <= '1';
@@ -368,12 +363,13 @@ fsm: process(s_now)
         end if;
 
       when s_print2 =>
-          mux1 <= '1';
           OUT_WE <= '0';
           s_next <= s_print;
 
       when s_print3 =>
-          s_next <= s_fetch;
+          OUT_WE <= '1';
+          OUT_DATA <= DATA_RDATA;
+          s_next <= s_decode;
 
 ------------------------------------------------------------------
       when s_ptr_inc =>
@@ -425,6 +421,7 @@ fsm: process(s_now)
 ------------------------------------------------------------------
 
       when s_again =>
+          --pc_inc <= '1';
           s_next <= s_fetch;
 
       when s_stop =>
