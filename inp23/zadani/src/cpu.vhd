@@ -227,18 +227,19 @@ fsm: process(s_now)
 
           when X"2B" =>
             s_next <= s_inc_data;
-
+            null;
           when X"2D" => 
             s_next <= s_dec_data;
-            --dekrement pc ig
-          
+            --dekrement data ig
+
           when X"5B" => 
             --aktualni hodnota je nulova, skoc za prikaz ] (dalsi case)
             s_next <= s_while;
-            
+           
 
           when X"5D" =>
             --hodnota nenulova skoc za [ jinak nasledujici znak
+            mux1 <= '1';
             s_next <= s_while_end;
           
           when X"7E" => 
@@ -246,7 +247,6 @@ fsm: process(s_now)
 
           when X"2E" =>
             --vytiskni hodnotu aktualni bunky
-            mux1 <= '1';
             s_next <= s_print;
 
 
@@ -263,12 +263,12 @@ fsm: process(s_now)
         pc_inc <= '1';
         DATA_EN <= '1';
         DATA_RDWR <= '0';
+        mux1 <= '1';
         s_next <= s_while2;
         
 
       when s_while2 =>
           if( DATA_RDATA = "00000000") then
-            mux1 <= '0';
             s_next <= s_while3;
           else
             s_next <= s_fetch;
@@ -276,7 +276,6 @@ fsm: process(s_now)
 
       when s_while3 => 
           if (DATA_RDATA = X"5D") then
-            mux1 <= '0';
             s_next <= s_fetch;
           else
             s_next <= s_while4;
@@ -287,31 +286,30 @@ fsm: process(s_now)
         s_next <= s_while3;
 
         
-      when s_while_end => 
-        if( DATA_RDATA /= "00000000") then
-          pc_dec <= '1';
-          s_next <= s_fetch;
-        else
-          pc_inc <= '1';
-          s_next <= s_fetch;
-        end if;
+      when s_while_end =>
+          s_next <= s_while_end2;
+
 
       when s_while_end2 =>
+        if( DATA_RDATA /= "00000000") then
+          s_next <= s_fetch;
+        else
+          s_next <= s_while_end3;
+        end if;
+
+      when s_while_end3 =>
         if( DATA_RDATA = X"5B") then
-            pc_inc <= '1';
             s_next <= s_fetch;
           else
             pc_dec <= '1';
-            s_next <= s_fetch;
-            s_next <= s_while_end3;
+            s_next <= s_while_end;
           end if;
 
-      when s_while_end3 =>
+      when s_while_end4 =>
           s_next <= s_while_end2;
 
 ------------------------------------------------------------------
       when s_break =>
-        mux1 <= '0';
         s_next <= s_break2;
 
       when s_break2 =>

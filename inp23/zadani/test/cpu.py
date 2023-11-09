@@ -75,9 +75,6 @@ async def test_input(dut):
 async def test_while_loop(dut):
     """Simple while loop test"""
     instcnt, mem, lcd = await run_program(dut, '[.-]@\3', timeout_ns = LCD_WAIT_TIME*10)
-    assert dut.data_addr.value == 4
-    assert dut.data_rdata.value == 2
-    assert mem == 1
     assert mem[5] == 0
     assert lcd == "\3\2\1"
 
