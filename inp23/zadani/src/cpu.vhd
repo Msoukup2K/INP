@@ -1,7 +1,7 @@
 -- cpu.vhd: Simple 8-bit CPU (BrainFuck interpreter)
 -- Copyright (C) 2023 Brno University of Technology,
 --                    Faculty of Information Technology
--- Author(s): jmeno <login AT stud.fit.vutbr.cz>
+-- Author(s): Martin Soukup <xsouku15@stud.fit.vutbr.cz>
 --
 library ieee;
 use ieee.std_logic_1164.all;
@@ -90,7 +90,7 @@ begin
         if (pc_inc = '1') then
           pc_data <= pc_data+1; --inc
         elsif (pc_dec = '1') then
-          pc_data <= ptr_data-1; --dec
+          pc_data <= pc_data-1; --dec
         end if;
       end if;
   end process pc;
@@ -222,7 +222,7 @@ fsm: process(s_now)
           when X"3C" => 
             --dekrement ptr
             ptr_dec <= '1';
-            pc_dec <= '1';
+            pc_inc <= '1';
             s_next <= s_ptr_dec;
 
           when X"2B" =>
@@ -264,49 +264,44 @@ fsm: process(s_now)
         DATA_EN <= '1';
         DATA_RDWR <= '0';
         mux1 <= '1';
-        s_next <= s_while2;
+        s_next <= s_fetch;
+      
         
-
-      when s_while2 =>
-          if( DATA_RDATA = "00000000") then
-            s_next <= s_while3;
-          else
-            s_next <= s_fetch;
-          end if;
-
-      when s_while3 => 
-          if (DATA_RDATA = X"5D") then
-            s_next <= s_fetch;
-          else
-            s_next <= s_while4;
-          end if;
-
-      when s_while4 =>
-        pc_inc <= '1';
-        s_next <= s_while3;
-
-        
-      when s_while_end =>
-          s_next <= s_while_end2;
-
+        when s_while_end =>
+        mux1 <= '1';
+        s_next <= s_while_end2;
 
       when s_while_end2 =>
-        if( DATA_RDATA /= "00000000") then
+        if( DATA_RDATA = "00000000") then
+          pc_inc <= '1';
           s_next <= s_fetch;
         else
+          cnt_inc <= '1';
+          pc_dec <= '1';
           s_next <= s_while_end3;
         end if;
 
       when s_while_end3 =>
-        if( DATA_RDATA = X"5B") then
-            s_next <= s_fetch;
-          else
-            pc_dec <= '1';
-            s_next <= s_while_end;
+        cnt_inc <= '0';
+        if( cnt_data = "00000000") then
+          s_next <= s_fetch;
+        else
+          mux1 <= '0';
+          if( DATA_RDATA = X"5D") then
+            cnt_inc <= '1';
+          elsif ( DATA_RDATA = X"5B") then
+            cnt_dec <= '1';
           end if;
+          s_next <= s_while_end4;
+        end if;
 
       when s_while_end4 =>
-          s_next <= s_while_end2;
+        if( cnt_data = "00000000") then
+          pc_inc <= '1';
+        else
+          pc_dec <= '1';
+        end if;
+        s_next <= s_while_end3;
 
 ------------------------------------------------------------------
       when s_break =>
@@ -419,7 +414,6 @@ fsm: process(s_now)
 ------------------------------------------------------------------
 
       when s_again =>
-          --pc_inc <= '1';
           s_next <= s_fetch;
 
       when s_stop =>
