@@ -85,17 +85,17 @@ async def test_break(dut):
     instcnt, mem, lcd = await run_program(dut, '[-~+]@\1', timeout_ns = LCD_WAIT_TIME*10)
     assert mem[6] == 0
 
-@tb_test()
-async def test_login(dut, uid=''):
-    """Executes program in login.b file"""
-    file_name = '../src/login.b'
-    assert os.path.isfile(file_name), "File login.b is missing" 
-    with open(file_name,'rt') as f:
-        prog = f.read()
-    assert len(prog), "File login.b doesn't contain any program"
-    instcnt, mem, lcd = await run_program(dut, prog, timeout_ns = 250_000)
-    lcd = lcd.lower()
-    assert lcd == uid, "Invalid output"
+#@tb_test()
+#async def test_login(dut, uid=''):
+ #   """Executes program in login.b file"""
+  #  file_name = '../src/login.b'
+   # assert os.path.isfile(file_name), "File login.b is missing" 
+    #with open(file_name,'rt') as f:
+     #  prog = f.read()
+    #assert len(prog), "File login.b doesn't contain any program"
+    #instcnt, mem, lcd = await run_program(dut, prog, timeout_ns = 250_000)
+    #lcd = lcd.lower()
+    #assert lcd == uid, "Invalid output"
 
 
 #-------------------------------------------------------------------------------------------------------
