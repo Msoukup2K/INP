@@ -101,9 +101,17 @@ begin
     ptr_data <= "0000000000000" ;
   elsif (CLK'event and CLK='1') then
       if (ptr_inc = '1') then
-        ptr_data <= ptr_data + 1;
+        if(ptr_data = "1111111111111") then
+          ptr_data <= "0000000000000";
+        else
+          ptr_data <= ptr_data + 1;
+        end if;
       elsif (ptr_dec = '1') then
-        ptr_data <= ptr_data - 1;
+        if(ptr_data = "0000000000000") then
+          ptr_data <= "1111111111111";
+        else
+          ptr_data <= ptr_data - 1;
+        end if;
       end if;
   end if;
 end process ptr;
